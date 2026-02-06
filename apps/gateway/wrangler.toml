@@ -1,0 +1,8 @@
+name = "kmnd-gateway"
+main = "index.ts"
+compatibility_date = "2026-02-06"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "YOUR_D1_DB_NAME" # Apna D1 database ka naam yaha likho
+database_id = "YOUR_D1_DB_ID"     # Apna D1 database ID yaha likho
