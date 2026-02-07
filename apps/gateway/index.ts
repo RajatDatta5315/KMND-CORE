@@ -1,30 +1,30 @@
-export interface Env {
-  DB: D1Database;
-}
+import { handleHistory, handleLeaderboard } from './handlers';
+
+export interface Env { DB: D1Database; }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    
-    if (url.pathname === "/pay" && request.method === "POST") {
-      const { amount, appId, userId } = await request.json();
+    const method = request.method;
 
-      // 1. Check Balance
+    if (url.pathname === "/pay" && method === "POST") {
+      const { amount, appId, userId } = await request.json();
       const user = await env.DB.prepare("SELECT balance FROM users WHERE id = ?").bind(userId).first();
       
       if (!user || user.balance < amount) {
-        return new Response(JSON.stringify({ success: false, error: "Insufficient ⟁KMND" }), { status: 400 });
+        return new Response(JSON.stringify({ success: false }), { status: 400 });
       }
 
-      // 2. Atomic Transaction (Deduct & Log)
       await env.DB.batch([
         env.DB.prepare("UPDATE users SET balance = balance - ? WHERE id = ?").bind(amount, userId),
         env.DB.prepare("INSERT INTO transactions (user_id, amount, app_id, action_type) VALUES (?, ?, ?, 'SPEND')").bind(userId, amount, appId)
       ]);
-
       return new Response(JSON.stringify({ success: true }));
     }
 
-    return new Response("KRYV GATEWAY LIVE");
+    if (url.pathname === "/history") return handleHistory(url, env);
+    if (url.pathname === "/leaderboard") return handleLeaderboard(env);
+
+    return new Response("⟁KMND GATEWAY ONLINE");
   },
 };
