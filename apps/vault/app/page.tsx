@@ -37,7 +37,7 @@ export default function LandingPage() {
           </div>
           <h2 className="text-5xl font-black text-white italic mt-[-40px]">⟁KMND</h2>
           <a href="/docs" className="mt-8 text-cyan-500 text-xs font-mono border-b border-cyan-500 hover:text-white transition-all">
-            VIEW_PROTOCOL_DOCS >>
+            VIEW_PROTOCOL_DOCS {" >>"}
           </a>
         </div>
 
