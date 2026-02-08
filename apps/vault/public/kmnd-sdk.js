@@ -1,18 +1,19 @@
 /**
- * ⟁ KMND UNIVERSAL BRIDGE SDK v1.0
- * Connect any app to the KRYV Ecosystem
+ * ⟁ KMND UNIVERSAL BRIDGE SDK v1.1
+ * Dynamic Ecosystem Integration
  */
 const KMND = {
-  gateway: "https://kmnd-core.rajat.workers.dev",
+  // Points to your Vercel rewrite path
+  gateway: "/api/gateway",
 
-  // Check Balance
   async getBalance(userId) {
-    const res = await fetch(`${this.gateway}/history?userId=${userId}`);
-    const data = await res.json();
-    return data.balance || 0;
+    try {
+      const res = await fetch(`${this.gateway}/history?userId=${userId}`);
+      const data = await res.json();
+      return data.balance || 0;
+    } catch (e) { return 0; }
   },
 
-  // Initiate Payment (User to App/Seller)
   async pay(userId, amount, appId) {
     try {
       const res = await fetch(`${this.gateway}/pay`, {
@@ -26,7 +27,6 @@ const KMND = {
     }
   },
 
-  // Universal Transfer (P2P with 2% Tax)
   async transfer(fromId, toId, amount, appId) {
     try {
       const res = await fetch(`${this.gateway}/transfer`, {
@@ -41,4 +41,4 @@ const KMND = {
   }
 };
 
-window.KMND = KMND; // Global availability
+window.KMND = KMND;
