@@ -1,35 +1,64 @@
 export default function DocsPage() {
   return (
-    <div className="max-w-4xl mx-auto p-8 font-mono text-cyan-400">
-      <h1 className="text-4xl font-black mb-8 border-b border-cyan-900 pb-4 italic">DEVELOPER_PROTOCOL // ⟁KMND</h1>
+    <div className="max-w-4xl mx-auto p-10 font-sans text-gray-300">
+      <header className="mb-16">
+        <h1 className="text-5xl font-black mb-4 text-white italic tracking-tighter uppercase">Developer_Protocol // ⟁KMND</h1>
+        <p className="text-cyan-500 font-mono text-xs tracking-widest uppercase">Version 1.0.2 Stable // Bridge_Active</p>
+      </header>
       
-      <section className="mb-12">
-        <h2 className="text-xl mb-4 text-white uppercase tracking-widest">1. Global Integration</h2>
-        <p className="text-gray-400 mb-4">Add the ⟁KMND economy to any app with a simple POST request.</p>
-        <div className="bg-zinc-900 p-4 rounded border border-cyan-500/30">
-          <code>POST https://gateway.kryv.network/pay</code>
-        </div>
-      </section>
+      {/* SDK Section */}
+      <section className="mb-16 border-l-2 border-cyan-900 pl-6">
+        <h2 className="text-2xl font-bold mb-4 text-white font-mono uppercase tracking-tighter">1. Universal_Bridge_SDK</h2>
+        <p className="mb-4">Add this script to your project to use the global <code className="text-cyan-400">KMND</code> object.</p>
+        <pre className="bg-zinc-900/50 p-4 rounded border border-zinc-800 text-sm overflow-x-auto mb-4">
+          <code className="text-cyan-300">
+{`<script src="https://vault.kryv.network/kmnd-sdk.js"></script>`}
+          </code>
+        </pre>
+        <h3 className="text-sm font-bold text-white mb-2 uppercase">Usage:</h3>
+        <pre className="bg-black p-4 rounded border border-zinc-800 text-xs text-green-400">
+{`// Trigger a payment in KRIYEX or VELQA
+const tx = await KMND.pay("user_id_123", 100, "APP_NAME");
 
-      <section className="mb-12">
-        <h2 className="text-xl mb-4 text-white uppercase tracking-widest">2. Request Payload</h2>
-        <pre className="bg-zinc-900 p-4 text-sm overflow-x-auto border border-cyan-500/30">
-{`{
-  "amount": 50,
-  "appId": "YOUR_APP_NAME",
-  "userId": "CLERK_USER_ID"
+if (tx.success) {
+  console.log("ENERGY_TRANSFER_COMPLETE");
 }`}
         </pre>
       </section>
 
-      <section>
-        <h2 className="text-xl mb-4 text-white uppercase tracking-widest">3. Verification</h2>
-        <p className="text-gray-400">The gateway returns <span className="text-green-400">200 OK</span> on successful energy deduction or <span className="text-red-400">400 Bad Request</span> if energy is insufficient.</p>
+      {/* API Section */}
+      <section className="mb-16 border-l-2 border-red-900 pl-6">
+        <h2 className="text-2xl font-bold mb-4 text-white font-mono uppercase tracking-tighter">2. Direct_API_Access</h2>
+        <div className="bg-zinc-900/50 p-6 rounded border border-red-900/20">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="bg-red-600 text-black px-2 py-1 text-[10px] font-bold">POST</span>
+            <code className="text-white text-sm">https://kmnd-core.rajat.workers.dev/transfer</code>
+          </div>
+          <p className="text-xs mb-4 text-gray-500 font-mono uppercase">// Required Payload</p>
+          <pre className="text-sm text-gray-400 leading-relaxed">
+{`{
+  "fromId": "SENDER_ID",
+  "toId": "RECEIVER_ID",
+  "amount": 50,
+  "appId": "ECOSYSTEM_APP"
+}`}
+          </pre>
+        </div>
       </section>
 
-      <div className="mt-20 opacity-30 text-[10px] text-center uppercase tracking-[1em]">
-        KRYV NETWORK // NO COUNTERFEIT // AGI READY
-      </div>
+      {/* Tax Notice */}
+      <section className="p-6 bg-cyan-900/5 border border-cyan-900/20 rounded">
+        <h3 className="text-white font-bold mb-2 uppercase italic text-sm underline">Economy_Notice (2% NEURAL_TAX)</h3>
+        <p className="text-xs leading-relaxed opacity-70">
+          Every transaction via the Bridge incurs a 2% Tax. 
+          1% is automatically <span className="text-red-500">BURNED</span> for token stability. 
+          1% is sent to <span className="text-cyan-500">KRYV_VAULT</span> for infrastructure.
+        </p>
+      </section>
+
+      <footer className="mt-20 text-[10px] opacity-20 text-center uppercase tracking-[2em]">
+        KRYV_SYSTEMS_INTL
+      </footer>
     </div>
   );
 }
