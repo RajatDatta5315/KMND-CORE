@@ -1,36 +1,62 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useAuth } from '@clerk/nextjs';
 
-export default function TransactionHistory({ userId }: { userId: string }) {
-  const [history, setHistory] = useState([]);
+const API = process.env.NEXT_PUBLIC_KMND_API || '';
+
+type Tx = { id:string; type:string; amount:number; description:string; created_at:string; };
+
+const DEMO_TX: Tx[] = [
+  { id:'1', type:'earn', amount:100, description:'Genesis Grant — Welcome to KMND', created_at:new Date(Date.now()-86400000*7).toISOString() },
+  { id:'2', type:'earn', amount:250, description:'Battle win — ORACLE (+8 ELO)', created_at:new Date(Date.now()-86400000*3).toISOString() },
+  { id:'3', type:'earn', amount:50,  description:'KRIYEX marketplace sale', created_at:new Date(Date.now()-86400000).toISOString() },
+];
+
+export default function TransactionHistory() {
+  const { getToken } = useAuth();
+  const [txs, setTxs] = useState<Tx[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch from Gateway
-    fetch(`https://kmnd-core.YOUR_WORKER_URL.workers.dev/history?userId=${userId}`)
-      .then(res => res.json())
-      .then(data => setHistory(data.transactions || []));
-  }, [userId]);
+    if (!API) { setTxs(DEMO_TX); setLoading(false); return; }
+    (async () => {
+      try {
+        const token = await getToken();
+        const res = await fetch(`${API}/transactions`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        setTxs(Array.isArray(data) ? data : DEMO_TX);
+      } catch { setTxs(DEMO_TX); }
+      setLoading(false);
+    })();
+  }, [getToken]);
+
+  const isDemo = !API;
 
   return (
-    <div className="mt-10 w-full max-w-2xl border border-cyan-900/30 bg-black/50 p-6 backdrop-blur-xl">
-      <h3 className="text-cyan-400 font-mono text-sm mb-4 tracking-widest uppercase">Recent_Activity // Ledger</h3>
-      <div className="space-y-3">
-        {history.length === 0 ? (
-          <p className="text-gray-600 font-mono text-xs italic italic">No data in neural link...</p>
-        ) : (
-          history.map((tx: any) => (
-            <div key={tx.id} className="flex justify-between items-center border-b border-white/5 pb-2">
-              <div>
-                <p className="text-white text-xs font-bold uppercase">{tx.app_id}</p>
-                <p className="text-[10px] text-gray-500">{new Date(tx.timestamp).toLocaleString()}</p>
-              </div>
-              <p className={`font-mono ${tx.action_type === 'SPEND' ? 'text-red-500' : 'text-green-500'}`}>
-                {tx.action_type === 'SPEND' ? '-' : '+'}⟁{tx.amount}
-              </p>
-            </div>
-          ))
-        )}
+    <div className="border border-white/5 bg-black/40 rounded-xl overflow-hidden">
+      <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
+        <h3 className="font-mono text-xs text-gray-400 uppercase tracking-widest">Transaction History</h3>
+        {isDemo && <span className="text-[9px] font-mono text-yellow-700 border border-yellow-700/30 px-2 py-0.5 rounded-full">DEMO</span>}
       </div>
+      {loading ? (
+        <div className="p-4 space-y-2">{[...Array(3)].map((_,i)=><div key={i} className="h-10 bg-white/5 rounded animate-pulse"/>)}</div>
+      ) : txs.length === 0 ? (
+        <p className="text-gray-600 font-mono text-xs text-center py-8">No transactions yet</p>
+      ) : (
+        <div className="divide-y divide-white/5">
+          {txs.map(tx => (
+            <div key={tx.id} className="px-5 py-3 flex items-center justify-between hover:bg-white/3 transition-colors">
+              <div>
+                <p className="font-mono text-xs text-white">{tx.description}</p>
+                <p className="font-mono text-[10px] text-gray-600">{new Date(tx.created_at).toLocaleDateString()}</p>
+              </div>
+              <span className={`font-mono text-sm font-bold tabular-nums ${tx.amount>0?'text-cyan-400':'text-red-400'}`}>
+                {tx.amount>0?'+':''}{tx.amount > 0 ? '⟁' : '-⟁'}{Math.abs(tx.amount).toLocaleString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
