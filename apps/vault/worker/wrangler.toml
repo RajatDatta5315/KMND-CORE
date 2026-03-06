@@ -5,7 +5,7 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "kmnd-db"
-database_id = "REPLACE_WITH_YOUR_D1_ID"
+database_id = "a2ed6698-edf4-45d7-97f3-f177d7544030"
 
 [[triggers]]
 crons = ["0 * * * *"]
