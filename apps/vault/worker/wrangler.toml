@@ -8,5 +8,5 @@ binding = "DB"
 database_name = "kmnd-db"
 database_id = "a2ed6698-edf4-45d7-97f3-f177d7544030"
 
-[[triggers]]
+[triggers]
 crons = ["0 * * * *"]
