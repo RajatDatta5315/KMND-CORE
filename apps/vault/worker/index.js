@@ -211,6 +211,50 @@ export default {
       return json({ok:true,rewarded:reward});
     }
 
+
+    // ── SELF AUTH (no Clerk needed) ──────────────────────────────────────
+    if (path==='/auth/signup' && request.method==='POST') {
+      const {email,password,display_name} = await request.json();
+      if (!email||!password) return err('Email and password required');
+      if (password.length < 6) return err('Password must be 6+ characters');
+      // Check if already exists
+      const ex = await env.DB.prepare('SELECT user_id FROM auth_users WHERE email=?').bind(email.toLowerCase()).first().catch(()=>null);
+      if (ex) return err('Email already registered');
+      // Simple hash (not bcrypt - workers limitation, use SHA-256)
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password + (env.JWT_SECRET||'kryv-secret'));
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hash = Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
+      const uid = crypto.randomUUID();
+      await env.DB.prepare('CREATE TABLE IF NOT EXISTS auth_users (user_id TEXT PRIMARY KEY,email TEXT UNIQUE,password_hash TEXT,display_name TEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP)').run().catch(()=>{});
+      await env.DB.prepare('INSERT INTO auth_users(user_id,email,password_hash,display_name) VALUES(?,?,?,?)').bind(uid,email.toLowerCase(),hash,display_name||email.split('@')[0]).run();
+      // Create wallet at zero
+      await getOrCreateWallet(uid,env);
+      // Issue JWT
+      const header = btoa(JSON.stringify({alg:'HS256',typ:'JWT'}));
+      const payload = btoa(JSON.stringify({sub:uid,email:email.toLowerCase(),exp:Math.floor(Date.now()/1000)+86400*30}));
+      const sig = btoa(uid+email+(env.JWT_SECRET||'kryv-secret')).replace(/=/g,'');
+      const token = `${header}.${payload}.${sig}`;
+      return json({ok:true,token,user:{id:uid,email:email.toLowerCase(),display_name:display_name||email.split('@')[0]}});
+    }
+
+    if (path==='/auth/signin' && request.method==='POST') {
+      const {email,password} = await request.json();
+      if (!email||!password) return err('Email and password required');
+      await env.DB.prepare('CREATE TABLE IF NOT EXISTS auth_users (user_id TEXT PRIMARY KEY,email TEXT UNIQUE,password_hash TEXT,display_name TEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP)').run().catch(()=>{});
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password + (env.JWT_SECRET||'kryv-secret'));
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hash = Array.from(new Uint8Array(hashBuffer)).map(b=>b.toString(16).padStart(2,'0')).join('');
+      const user = await env.DB.prepare('SELECT * FROM auth_users WHERE email=? AND password_hash=?').bind(email.toLowerCase(),hash).first();
+      if (!user) return err('Invalid email or password');
+      const header = btoa(JSON.stringify({alg:'HS256',typ:'JWT'}));
+      const payload = btoa(JSON.stringify({sub:user.user_id,email:user.email,exp:Math.floor(Date.now()/1000)+86400*30}));
+      const sig = btoa(user.user_id+user.email+(env.JWT_SECRET||'kryv-secret')).replace(/=/g,'');
+      const token = `${header}.${payload}.${sig}`;
+      return json({ok:true,token,user:{id:user.user_id,email:user.email,display_name:user.display_name}});
+    }
+
     return err('Not found',404);
   },
 
